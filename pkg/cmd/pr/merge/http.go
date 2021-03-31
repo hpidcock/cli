@@ -28,6 +28,7 @@ type mergePayload struct {
 	setCommitSubject bool
 	commitBody       string
 	setCommitBody    bool
+	expectedHeadOid  string
 }
 
 // TODO: drop after githubv4 gets updated
@@ -59,6 +60,11 @@ func mergePullRequest(client *http.Client, payload mergePayload) error {
 	if payload.setCommitBody {
 		commitBody := githubv4.String(payload.commitBody)
 		input.CommitBody = &commitBody
+	}
+
+	if payload.expectedHeadOid != "" {
+		expectedHeadOid := githubv4.GitObjectID(payload.expectedHeadOid)
+		input.ExpectedHeadOid = &expectedHeadOid
 	}
 
 	variables := map[string]interface{}{

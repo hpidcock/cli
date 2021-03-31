@@ -46,6 +46,8 @@ type MergeOptions struct {
 	IsDeleteBranchIndicated bool
 	CanDeleteLocalBranch    bool
 	InteractiveMode         bool
+
+	ExpectedHeadOID string
 }
 
 func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Command {
@@ -151,6 +153,7 @@ func NewCmdMerge(f *cmdutil.Factory, runF func(*MergeOptions) error) *cobra.Comm
 	cmd.Flags().BoolVarP(&flagSquash, "squash", "s", false, "Squash the commits into one commit and merge it into the base branch")
 	cmd.Flags().BoolVar(&opts.AutoMergeEnable, "auto", false, "Automatically merge only after necessary requirements are met")
 	cmd.Flags().BoolVar(&opts.AutoMergeDisable, "disable-auto", false, "Disable auto-merge for this pull request")
+	cmd.Flags().StringVarP(&opts.ExpectedHeadOID, "expected-head", "", "", "Commit OID the pull request head must match to perform merge")
 	return cmd
 }
 
@@ -201,12 +204,13 @@ func mergeRun(opts *MergeOptions) error {
 	isPRAlreadyMerged := pr.State == "MERGED"
 	if !isPRAlreadyMerged {
 		payload := mergePayload{
-			repo:          baseRepo,
-			pullRequestID: pr.ID,
-			method:        opts.MergeMethod,
-			auto:          opts.AutoMergeEnable,
-			commitBody:    opts.Body,
-			setCommitBody: opts.BodySet,
+			repo:            baseRepo,
+			pullRequestID:   pr.ID,
+			method:          opts.MergeMethod,
+			auto:            opts.AutoMergeEnable,
+			commitBody:      opts.Body,
+			setCommitBody:   opts.BodySet,
+			expectedHeadOid: opts.ExpectedHeadOID,
 		}
 
 		if opts.InteractiveMode {
